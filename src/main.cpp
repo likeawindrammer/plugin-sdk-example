@@ -37,18 +37,33 @@ class ColouredObjects {
             return atomic;
         }
     };
+
+    static ObjectExtendedData<ObjectColor> objColorData;
+
+    static void RenderObject(CObject *object) {
+        if (object->m_pRwObject) {
+        if (object->m_pRwObject->type == rpCLUMP)
+            RpClumpForAllAtomics(reinterpret_cast<RpClump *>(object->m_pRwObject),
+                                ObjectColor::AtomicCallback,
+                                &objColorData.Get(object));
+        else
+            ObjectColor::AtomicCallback(
+                reinterpret_cast<RpAtomic *>(object->m_pRwObject),
+                &objColorData.Get(object));
+        }
+    }
+
 public:
     ColouredObjects() {
-        static ObjectExtendedData<ObjectColor> objColorData;
-
-        // Paint object
-        Events::objectRenderEvent += [](CObject *object) {
-            if (object->m_pRwObject) {
-                if (object->m_pRwObject->type == rpCLUMP)
-                    RpClumpForAllAtomics(reinterpret_cast<RpClump*>(object->m_pRwObject), ObjectColor::AtomicCallback, &objColorData.Get(object));
-                else
-                    ObjectColor::AtomicCallback(reinterpret_cast<RpAtomic*>(object->m_pRwObject), &objColorData.Get(object));
-            }
+        Events::initRwEvent += [] {
+        if (IsPluginInstalled("SilentPatchSA.asi") &&
+            patch::GetUChar(0x59F180) == 0xE9) {
+            static ThiscallEvent<AddressList<0x59F180, H_JUMP>, PRIORITY_BEFORE,
+                                ArgPickN<CObject *, 0>, void(CObject *)>
+                silentPatchObjectRenderEvent;
+            silentPatchObjectRenderEvent += RenderObject;
+        } else
+            Events::objectRenderEvent += RenderObject;
         };
 
         // Print objects text
@@ -98,3 +113,5 @@ public:
         };
     }
 } colouredObjects;
+
+ObjectExtendedData<ColouredObjects::ObjectColor> ColouredObjects::objColorData;
