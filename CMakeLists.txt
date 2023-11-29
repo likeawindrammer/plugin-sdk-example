@@ -12,8 +12,8 @@ set(CPM_SOURCE_CACHE cache)
 
 CPMAddPackage(
   NAME plugin-sdk
-  GITHUB_REPOSITORY likeawindrammer/plugin-sdk-cmake
-  GIT_TAG 84cd559322fa4a0593e4b6a6dc802705a9eb7b23
+  GITHUB_REPOSITORY likeawindrammer/plugin-sdk-mingw
+  GIT_TAG 6567e11379b90e1db2b351492e4bcf172a33690a
 )
 
 add_library(ColouredObjects src/main.cpp)
